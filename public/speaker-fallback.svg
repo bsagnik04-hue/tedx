@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" fill="none">
+  <rect width="800" height="1000" fill="#090909"/>
+  <rect x="28" y="28" width="744" height="944" rx="44" fill="url(#panel)" stroke="rgba(255,255,255,0.12)"/>
+  <circle cx="400" cy="334" r="126" fill="url(#glow)"/>
+  <circle cx="400" cy="320" r="94" fill="#181818" stroke="#F04444" stroke-width="10"/>
+  <path d="M238 770c24-126 114-196 162-196s138 70 162 196" fill="#181818" stroke="#F04444" stroke-width="16" stroke-linecap="round"/>
+  <path d="M318 334c22 22 48 34 82 34 34 0 60-12 82-34" stroke="#F04444" stroke-width="10" stroke-linecap="round"/>
+  <text x="400" y="866" text-anchor="middle" fill="#F5F5F5" font-family="Arial, sans-serif" font-size="54" font-weight="700" letter-spacing="8">
+    SPEAKER
+  </text>
+  <text x="400" y="920" text-anchor="middle" fill="#BDBDBD" font-family="Arial, sans-serif" font-size="28" letter-spacing="6">
+    TEDx MSRIT
+  </text>
+  <defs>
+    <linearGradient id="panel" x1="400" y1="28" x2="400" y2="972" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#131313"/>
+      <stop offset="1" stop-color="#1A0909"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(400 334) rotate(90) scale(196 196)">
+      <stop stop-color="#8A1C1C"/>
+      <stop offset="1" stop-color="#8A1C1C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

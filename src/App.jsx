@@ -2,18 +2,26 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Route, Routes } from "react-router-dom";
 import About from "./components/About";
 import Contact from "./components/Contact";
 import EventDate from "./components/EventDate";
 import Features from "./components/Features";
 import Hero from "./components/Hero";
+import InfoModal from "./components/InfoModal";
+import RegistrationModal from "./components/RegistrationModal";
+import Speakers from "./components/Speakers";
 import Theme from "./components/Theme";
+import { useSpeakers } from "./hooks/useSpeakers";
+import AdminDashboard from "./pages/AdminDashboard";
+import Success from "./pages/Success";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const navItems = [
   { label: "About", href: "#about" },
   { label: "Features", href: "#features" },
+  { label: "Speakers", href: "#speakers" },
   { label: "Theme", href: "#theme" },
   { label: "Date", href: "#event-date" },
   { label: "Contact", href: "#contact" },
@@ -70,7 +78,7 @@ function CursorGlow() {
   );
 }
 
-function Navbar() {
+function Navbar({ onOpenInfoModal }) {
   return (
     <motion.header
       className="fixed inset-x-0 top-0 z-50 mx-auto w-[min(94%,1200px)]"
@@ -93,12 +101,13 @@ function Navbar() {
             </a>
           ))}
         </nav>
-        <a
-          href="#contact"
+        <button
+          type="button"
+          onClick={onOpenInfoModal}
           className="rounded-full border border-red-500/30 bg-red-600/90 px-4 py-2 font-body text-xs font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-red-500"
         >
           Join Us
-        </a>
+        </button>
       </div>
     </motion.header>
   );
@@ -114,12 +123,15 @@ function AmbientLayers() {
   );
 }
 
-export default function App() {
+function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const repeatingWords = useMemo(
     () => Array.from({ length: 12 }, () => "REVERIE   WHERE IDEAS DREAM INTO REALITY"),
     [],
   );
+  const { speakers, loading, error } = useSpeakers();
 
   useEffect(() => {
     const timer = window.setTimeout(() => setIsLoading(false), 1900);
@@ -154,7 +166,24 @@ export default function App() {
       <AnimatePresence>{isLoading ? <Loader /> : null}</AnimatePresence>
       <AmbientLayers />
       <CursorGlow />
-      <Navbar />
+      <Navbar
+        onOpenInfoModal={() => {
+          setShowRegisterModal(false);
+          setShowInfoModal(true);
+        }}
+      />
+      <InfoModal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        onProceed={() => {
+          setShowInfoModal(false);
+          setShowRegisterModal(true);
+        }}
+      />
+      <RegistrationModal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+      />
 
       <main className="relative overflow-hidden">
         <div className="border-y border-white/6 bg-black/40 py-3 mt-[88px]">
@@ -168,13 +197,24 @@ export default function App() {
             </div>
           </div>
         </div>
-        <Hero />
+        <Hero onOpenRegistration={() => setShowRegisterModal(true)} />
         <About />
         <Features />
+        <Speakers speakers={speakers} loading={loading} error={error} />
         <Theme />
         <EventDate />
-        <Contact />
+        <Contact onOpenRegistration={() => setShowRegisterModal(true)} />
       </main>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/success" element={<Success />} />
+    </Routes>
   );
 }

@@ -36,7 +36,7 @@ function Card({ rotate, className, delay, label }) {
   );
 }
 
-export default function Hero() {
+export default function Hero({ onOpenRegistration }) {
   const { scrollYProgress } = useScroll();
   const yLeft = useTransform(scrollYProgress, [0, 1], [0, -180]);
   const yRight = useTransform(scrollYProgress, [0, 1], [0, -240]);
@@ -85,13 +85,14 @@ export default function Hero() {
           and unforgettable conversations.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <a
-            href="#contact"
+          <button
+            type="button"
+            onClick={onOpenRegistration}
             className="group inline-flex items-center gap-3 rounded-full border border-red-400/30 bg-red-600 px-7 py-4 font-body text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-glow transition hover:bg-red-500"
           >
             Register Now
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </a>
+          </button>
           <a
             href="#about"
             className="inline-flex rounded-full border border-white/15 bg-white/5 px-7 py-4 font-body text-sm uppercase tracking-[0.26em] text-white/75 transition hover:border-white/25 hover:bg-white/10 hover:text-white"

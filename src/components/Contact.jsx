@@ -1,6 +1,6 @@
 import { Instagram, Mail, Phone } from "lucide-react";
 
-export default function Contact() {
+export default function Contact({ onOpenRegistration }) {
   return (
     <footer
       id="contact"
@@ -18,12 +18,13 @@ export default function Contact() {
           </p>
         </div>
 
-        <a
-          href="#hero"
+        <button
+          type="button"
+          onClick={onOpenRegistration}
           className="inline-flex rounded-full border border-red-500/30 bg-red-600 px-6 py-3 font-body text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-red-500"
         >
           Register Now
-        </a>
+        </button>
       </div>
 
       <div className="mx-auto mt-12 grid w-[min(92%,1200px)] gap-6 border-t border-white/10 pt-10 md:grid-cols-3">
