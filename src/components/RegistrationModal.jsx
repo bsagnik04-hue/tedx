@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, ArrowLeft, CheckCircle2, LoaderCircle, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, LoaderCircle, X, UploadCloud } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ticketTypes } from "../lib/constants";
-import { hasEmailJsConfig, sendTicketEmail } from "../lib/email";
 import { hasSupabaseConfig, supabase } from "../lib/supabase";
+import jsPDF from "jspdf";
 
 const initialFormState = {
   name: "",
@@ -13,21 +13,6 @@ const initialFormState = {
   college: "",
   ticket_type: ticketTypes[0].id,
 };
-
-function loadRazorpay() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
 
 function sanitizePhone(value) {
   return value.replace(/[^\d+\s()-]/g, "");
@@ -61,28 +46,6 @@ function validateAttendee(attendee) {
 
 function createTicketId() {
   return `TEDX-${Date.now()}`;
-}
-
-function persistSuccessPayload(payload) {
-  try {
-    sessionStorage.setItem("tedx_success", JSON.stringify(payload));
-  } catch (error) {
-    console.error("[registration] Could not persist success payload:", error);
-  }
-}
-
-function buildRegistrationPayload({ attendee, paymentStatus, paymentMethod, paymentId, ticketId }) {
-  return {
-    name: attendee.name,
-    email: attendee.email,
-    phone: attendee.phone,
-    college: attendee.college,
-    ticket_type: attendee.ticket_type,
-    payment_status: paymentStatus,
-    payment_method: paymentMethod,
-    payment_id: paymentId ?? null,
-    ticket_id: ticketId,
-  };
 }
 
 async function insertRegistration(payload) {
@@ -120,9 +83,13 @@ export default function RegistrationModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState(initialFormState);
   const [step, setStep] = useState("form");
   const [loading, setLoading] = useState(false);
-  const [loadingMode, setLoadingMode] = useState("");
   const [error, setError] = useState("");
   const [successData, setSuccessData] = useState(null);
+
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [screenshotFile, setScreenshotFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const selectedTicket = useMemo(
     () => ticketTypes.find((ticket) => ticket.id === formData.ticket_type) || ticketTypes[0],
@@ -134,9 +101,11 @@ export default function RegistrationModal({ isOpen, onClose }) {
       setFormData(initialFormState);
       setStep("form");
       setLoading(false);
-      setLoadingMode("");
       setError("");
       setSuccessData(null);
+      setPaymentMethod("");
+      setTransactionId("");
+      setScreenshotFile(null);
       return;
     }
 
@@ -178,64 +147,115 @@ export default function RegistrationModal({ isOpen, onClose }) {
     setStep("payment");
   }
 
-  async function finalizeSuccessfulRegistration({ attendee, paymentId }) {
-    const ticketId = createTicketId();
-    const registrationPayload = buildRegistrationPayload({
-      attendee,
-      paymentStatus: "paid",
-      paymentMethod: "razorpay",
-      paymentId,
-      ticketId,
-    });
-    const registration = await insertRegistration(registrationPayload);
+  async function generateAndDownloadPDF(registration, fileObj) {
+    try {
+      const doc = new jsPDF();
+  
+      // 🎯 TITLE
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(229, 9, 20);
+      doc.text("TEDx MSRIT Ticket", 20, 25);
+  
+      // 📦 BOX DRAW FUNCTION
+      const drawBox = (label, value, y) => {
+        doc.setDrawColor(220);
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(20, y - 6, 170, 16, 3, 3, "FD");
+  
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(label.toUpperCase(), 24, y);
+  
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(20);
+        doc.text(String(value || "-"), 90, y);
+      };
+  
+      // 📄 CONTENT
+      let y = 45;
+  
+      drawBox("Ticket ID", registration.ticket_id, y); y += 18;
+      drawBox("Name", registration.name, y); y += 18;
+      drawBox("Email", registration.email, y); y += 18;
+      drawBox("Phone", registration.phone, y); y += 18;
+      drawBox("College", registration.college, y); y += 18;
+      drawBox("Ticket Type", registration.ticket_type, y); y += 18;
+      drawBox("Payment Status", registration.payment_status, y); y += 18;
+  
+      // 🔥 IMPORTANT FIELDS ADDED
+      drawBox("Payment Method", registration.payment_method, y); y += 18;
+      drawBox("Transaction ID", registration.payment_id, y); y += 22;
+  
+      // 🖼 SCREENSHOT IMAGE
+      if (fileObj) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(50);
+        doc.text("Payment Screenshot", 20, y);
+  
+        const reader = new FileReader();
+        reader.readAsDataURL(fileObj);
+  
+        await new Promise((res) => {
+          reader.onload = res;
+        });
+  
+        const imgData = reader.result;
+  
+        const img = new Image();
+        img.src = imgData;
+  
+        await new Promise((res) => {
+          img.onload = res;
+        });
+  
+        let width = img.width;
+        let height = img.height;
+        const ratio = height / width;
+  
+        width = 160;
+        height = width * ratio;
+  
+        if (height > 120) {
+          height = 120;
+          width = height / ratio;
+        }
+  
+        doc.addImage(imgData, "JPEG", 20, y + 10, width, height);
+      }
+  
+      // 💾 SAVE PDF
+      doc.save(`TEDx_MSRIT_Ticket_${registration.ticket_id}.pdf`);
+  
+    } catch (err) {
+      console.error("[pdf generation]", err);
+    }
+  }
 
-    if (hasEmailJsConfig()) {
-      await sendTicketEmail({
-        name: attendee.name,
-        email: attendee.email,
-        ticketId,
-      });
-    } else {
-      console.error("[email] Missing EmailJS env vars");
+  async function handlePaymentSubmit() {
+    const attendee = validateAndGetAttendee();
+    if (!attendee) return;
+
+    if (!paymentMethod) {
+      const err = "Please select a payment method.";
+      setError(err);
+      window.alert(err);
+      return;
     }
 
-    const payload = {
-      name: attendee.name,
-      email: attendee.email,
-      ticketId,
-      paymentStatus: "paid",
-    };
+    if (!transactionId.trim()) {
+      const err = "Please enter the transaction ID.";
+      setError(err);
+      window.alert(err);
+      return;
+    }
 
-    persistSuccessPayload(payload);
-    setSuccessData(registration);
-    return registration;
-  }
-
-  async function saveQrRegistration(attendee) {
-    const ticketId = createTicketId();
-    const registrationPayload = buildRegistrationPayload({
-      attendee,
-      paymentStatus: "pending",
-      paymentMethod: "qr",
-      paymentId: null,
-      ticketId,
-    });
-
-    const registration = await insertRegistration(registrationPayload);
-    persistSuccessPayload({
-      name: attendee.name,
-      email: attendee.email,
-      ticketId,
-      paymentStatus: "pending",
-    });
-    setSuccessData(registration);
-
-    return registration;
-  }
-
-  async function handleRazorpayPayment() {
-    const attendee = validateAndGetAttendee();
-    if (!attendee) {
+    if (!screenshotFile) {
+      const err = "Please upload a payment screenshot first.";
+      setError(err);
+      window.alert(err);
       return;
     }
 
@@ -247,133 +267,63 @@ export default function RegistrationModal({ isOpen, onClose }) {
       return;
     }
 
-    const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
-    if (!key) {
-      const keyError = "Razorpay key is missing. Please check VITE_RAZORPAY_KEY_ID.";
-      console.error("[registration]", keyError);
-      setError(keyError);
-      window.alert(keyError);
-      return;
-    }
-
     setLoading(true);
-    setLoadingMode("razorpay");
     setError("");
 
     try {
-      const loaded = await loadRazorpay();
+      const ticketId = createTicketId();
+      let screenshotUrl = null;
 
-      if (!loaded) {
-        throw new Error("Razorpay failed to load. Please refresh and try again.");
+      // 1. Upload screenshot
+      const fileExt = screenshotFile.name.split('.').pop();
+      const uniqueName = `${ticketId}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('payments')
+        .upload(uniqueName, screenshotFile);
+
+      if (storageError) {
+        throw new Error("Screenshot upload failed: " + storageError.message);
       }
 
-      const options = {
-        key,
-        amount: selectedTicket.amount * 100,
-        currency: "INR",
-        name: "TEDx MSRIT",
-        description: `${selectedTicket.label} Ticket`,
-        handler: async (response) => {
-          try {
-            const paymentId = response?.razorpay_payment_id;
+      const { data: { publicUrl } } = supabase.storage
+        .from('payments')
+        .getPublicUrl(uniqueName);
 
-            if (!paymentId) {
-              throw new Error("Payment succeeded but no payment ID was returned.");
-            }
+      screenshotUrl = publicUrl;
 
-            const registration = await finalizeSuccessfulRegistration({
-              attendee,
-              paymentId,
-            });
-
-            const successMessage = "Payment successful. Your ticket has been generated.";
-            window.alert(successMessage);
-            setStep("success");
-            navigate("/success", { state: registration });
-          } catch (completionError) {
-            console.error("[registration] Razorpay success flow failed:", completionError);
-            const message = completionError.message || "Could not complete registration.";
-            setError(message);
-            window.alert(message);
-          } finally {
-            setLoading(false);
-            setLoadingMode("");
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setLoading(false);
-            setLoadingMode("");
-          },
-        },
-        prefill: {
-          name: attendee.name,
-          email: attendee.email,
-          contact: attendee.phone,
-        },
-        notes: {
-          college: attendee.college,
-          ticket_type: attendee.ticket_type,
-        },
-        theme: {
-          color: "#E50914",
-        },
+      // 2. Insert into database
+      const registrationPayload = {
+        name: attendee.name,
+        email: attendee.email,
+        phone: attendee.phone,
+        college: attendee.college,
+        ticket_type: attendee.ticket_type,
+        payment_status: "pending_verification",
+        ticket_id: ticketId,
+        screenshot_url: screenshotUrl,
+        payment_method: paymentMethod,   // ✅ FIXED
+        payment_id: transactionId
       };
 
-      const paymentObject = new window.Razorpay(options);
+      const registration = await insertRegistration(registrationPayload);
 
-      paymentObject.on("payment.failed", (response) => {
-        console.error("[registration] Razorpay payment failed:", response?.error);
-        const message =
-          response?.error?.description || "Payment failed. Please try again or use the QR option.";
-        setError(message);
-        setLoading(false);
-        setLoadingMode("");
-        window.alert(message);
-      });
+      // 3. Generate PDF
+      await generateAndDownloadPDF(registration, screenshotFile);
 
-      paymentObject.open();
-    } catch (paymentError) {
-      console.error("[registration] Razorpay error:", paymentError);
-      const message = paymentError.message || "Payment error. Please try again.";
-      setError(message);
+      const message = "Payment submitted. Your ticket PDF is downloading.";
       window.alert(message);
-      setLoading(false);
-      setLoadingMode("");
-    }
-  }
 
-  async function handleQrPayment() {
-    const attendee = validateAndGetAttendee();
-    if (!attendee) {
-      return;
-    }
-
-    if (!hasSupabaseConfig() || !supabase) {
-      const configError = "Supabase is not configured correctly.";
-      console.error("[registration]", configError);
-      setError(configError);
-      window.alert(configError);
-      return;
-    }
-
-    setLoading(true);
-    setLoadingMode("qr");
-    setError("");
-
-    try {
-      await saveQrRegistration(attendee);
-      const message = "Payment will be verified manually.";
-      window.alert(message);
+      setSuccessData(registration);
       setStep("success");
-    } catch (qrError) {
-      console.error("[registration] QR payment error:", qrError);
-      const message = qrError.message || "QR payment could not be saved.";
+
+    } catch (err) {
+      console.error("[registration] submission error:", err);
+      const message = err.message || "Registration could not be saved.";
       setError(message);
       window.alert(message);
     } finally {
       setLoading(false);
-      setLoadingMode("");
     }
   }
 
@@ -381,9 +331,11 @@ export default function RegistrationModal({ isOpen, onClose }) {
     setFormData(initialFormState);
     setStep("form");
     setLoading(false);
-    setLoadingMode("");
     setError("");
     setSuccessData(null);
+    setPaymentMethod("");
+    setTransactionId("");
+    setScreenshotFile(null);
     onClose();
   }
 
@@ -423,7 +375,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                 {step === "form" ? (
                   <StepShell
                     title="Reserve your TEDx ticket"
-                    description="Fill in your details first, then complete your payment using Razorpay or the QR fallback."
+                    description="Fill in your details first, then complete your payment via UPI."
                   >
                     <form onSubmit={handleContinue}>
                       <div className="grid gap-5 md:grid-cols-2">
@@ -462,11 +414,10 @@ export default function RegistrationModal({ isOpen, onClose }) {
                                 ticket_type: ticket.id,
                               }))
                             }
-                            className={`rounded-[1.5rem] border p-5 text-left transition ${
-                              formData.ticket_type === ticket.id
-                                ? "border-red-500/40 bg-red-600/10 shadow-glow"
-                                : "border-white/10 bg-white/[0.04]"
-                            }`}
+                            className={`rounded-[1.5rem] border p-5 text-left transition ${formData.ticket_type === ticket.id
+                              ? "border-red-500/40 bg-red-600/10 shadow-glow"
+                              : "border-white/10 bg-white/[0.04]"
+                              }`}
                           >
                             <p className="font-display text-2xl font-black uppercase text-white">
                               {ticket.label}
@@ -502,14 +453,14 @@ export default function RegistrationModal({ isOpen, onClose }) {
                 {step === "payment" ? (
                   <StepShell
                     title="Complete payment"
-                    description="Choose your preferred payment method below."
+                    description="Scan the QR code to pay, then upload the screenshot."
                   >
                     <div className="grid items-stretch gap-6 md:grid-cols-2">
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6">
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6 h-full">
                         <p className="font-display text-2xl font-black uppercase text-white">
                           Order Summary
                         </p>
-                        <div className="mt-6 space-y-4 font-body text-sm text-white/72">
+                        <div className="mt-6 space-y-4 font-body text-sm text-white/72 mb-8">
                           <div className="flex items-center justify-between gap-4">
                             <span>Name</span>
                             <span className="text-right text-white">{formData.name}</span>
@@ -540,18 +491,72 @@ export default function RegistrationModal({ isOpen, onClose }) {
                           </div>
                         </div>
 
-                        <div className="mt-6 flex flex-col gap-3">
-                          <button
-                            type="button"
-                            onClick={handleRazorpayPayment}
-                            disabled={loading}
-                            className="inline-flex items-center justify-center gap-3 rounded-full border border-red-500/30 bg-red-600 px-6 py-4 font-body text-sm font-semibold uppercase tracking-[0.28em] text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                        <div className="mt-auto space-y-4">
+                          <div className="space-y-4">
+                            <div>
+                              <p className="mb-3 font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                                App Used
+                              </p>
+                              <div className="flex gap-2">
+                                {["Google Pay", "Paytm", "PhonePe"].map((method) => (
+                                  <label key={method} className="flex-1 cursor-pointer">
+                                    <div className={`rounded-xl border px-3 py-2 text-center font-body text-xs text-white transition ${paymentMethod === method ? "border-red-500/40 bg-red-600/10 shadow-glow" : "border-white/10 bg-white/[0.04] hover:bg-white/10"
+                                      }`}>
+                                      <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        value={method}
+                                        checked={paymentMethod === method}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        className="sr-only"
+                                      />
+                                      {method}
+                                    </div>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="mb-2 font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                                Transaction ID
+                              </p>
+                              <input
+                                type="text"
+                                placeholder="Enter Transaction ID"
+                                value={transactionId}
+                                onChange={(e) => setTransactionId(e.target.value)}
+                                className="w-full rounded-xl border border-white/10 bg-white/[0.05] px-4 py-3 font-body text-sm text-white outline-none transition focus:border-red-500/40 hover:bg-white/[0.08]"
+                              />
+                            </div>
+                          </div>
+
+                          <div
+                            className="border-2 border-dashed border-white/20 rounded-2xl p-6 text-center hover:bg-white/5 transition cursor-pointer"
+                            onClick={() => fileInputRef.current?.click()}
                           >
-                            {loading && loadingMode === "razorpay" ? (
-                              <LoaderCircle className="h-4 w-4 animate-spin" />
-                            ) : null}
-                            {loading && loadingMode === "razorpay" ? "Processing..." : "Pay with Razorpay"}
-                          </button>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              ref={fileInputRef}
+                              className="hidden"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setScreenshotFile(e.target.files[0]);
+                                }
+                              }}
+                            />
+                            <div className="flex flex-col items-center gap-3">
+                              <UploadCloud className="w-8 h-8 text-white/50" />
+                              <div className="text-sm font-body text-white/70">
+                                {screenshotFile ? (
+                                  <span className="text-emerald-400">{screenshotFile.name}</span>
+                                ) : (
+                                  "Click to upload payment screenshot"
+                                )}
+                              </div>
+                            </div>
+                          </div>
 
                           <button
                             type="button"
@@ -560,7 +565,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                               setStep("form");
                             }}
                             disabled={loading}
-                            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-6 py-4 font-body text-sm font-semibold uppercase tracking-[0.24em] text-white/75 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-6 py-3 font-body text-sm font-semibold uppercase tracking-[0.24em] text-white/75 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             <ArrowLeft className="h-4 w-4" />
                             Back
@@ -569,7 +574,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                       </div>
 
                       <div className="flex min-h-[100%] flex-col rounded-[1.5rem] border border-red-500/40 bg-black p-6 text-center">
-                        <h3 className="font-display text-2xl font-black uppercase text-white">QR Payment</h3>
+                        <h3 className="font-display text-2xl font-black uppercase text-white">UPI Payment</h3>
                         <div className="mt-6 flex flex-1 items-center justify-center rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
                           <img
                             src="/qr.png"
@@ -588,14 +593,14 @@ export default function RegistrationModal({ isOpen, onClose }) {
                         </div>
                         <button
                           type="button"
-                          onClick={handleQrPayment}
-                          disabled={loading}
-                          className="mt-6 inline-flex items-center justify-center gap-3 rounded-full border border-white/15 bg-white/[0.06] px-6 py-4 font-body text-sm font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-60"
+                          onClick={handlePaymentSubmit}
+                          disabled={loading || !screenshotFile}
+                          className="mt-6 inline-flex items-center justify-center gap-3 rounded-full border border-red-500/30 bg-red-600 px-6 py-4 font-body text-sm font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          {loading && loadingMode === "qr" ? (
+                          {loading ? (
                             <LoaderCircle className="h-4 w-4 animate-spin" />
                           ) : null}
-                          {loading && loadingMode === "qr" ? "Saving..." : "I Paid via QR"}
+                          {loading ? "Submitting..." : "Submit Payment"}
                         </button>
                       </div>
                     </div>
@@ -605,21 +610,13 @@ export default function RegistrationModal({ isOpen, onClose }) {
                 {step === "success" && successData ? (
                   <StepShell
                     title="Registration saved"
-                    description={
-                      successData.payment_status === "paid"
-                        ? "Your registration has been confirmed and your ticket is ready."
-                        : "Your registration is saved. Payment will be verified manually."
-                    }
+                    description="Your registration is saved. Payment will be verified manually."
                   >
                     <div className="rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-6">
                       <div className="flex items-center gap-3 text-emerald-200">
-                        {successData.payment_status === "paid" ? (
-                          <CheckCircle2 className="h-6 w-6" />
-                        ) : (
-                          <AlertCircle className="h-6 w-6" />
-                        )}
+                        <AlertCircle className="h-6 w-6" />
                         <p className="font-display text-2xl font-black uppercase">
-                          {successData.payment_status === "paid" ? "Success" : "Pending verification"}
+                          Pending verification
                         </p>
                       </div>
                       <div className="mt-6 grid gap-4 sm:grid-cols-2">

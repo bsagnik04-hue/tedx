@@ -1,39 +1,44 @@
 import emailjs from "@emailjs/browser";
 
-function getEmailConfig() {
-  return {
-    serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
-    templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-    publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
-  };
-}
+const SERVICE_ID = "service_5c30jtp";
+const TEMPLATE_ID = "template_gax7n5k";
 
 export function hasEmailJsConfig() {
-  const { serviceId, templateId, publicKey } = getEmailConfig();
-  return Boolean(serviceId && templateId && publicKey);
+  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
+  return Boolean(publicKey);
 }
 
 export async function sendTicketEmail({ name, email, ticketId }) {
-  const { serviceId, templateId, publicKey } = getEmailConfig();
+  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
 
-  if (!serviceId || !templateId || !publicKey) {
+  if (!publicKey) {
     console.error("[email] Missing EmailJS env vars");
     throw new Error("Email service is not configured.");
   }
 
+  console.log("Sending email...", {
+    name,
+    email,
+    ticket_id: ticketId,
+  });
+
   try {
-    await emailjs.send(
-      serviceId,
-      templateId,
+    const response = await emailjs.send(
+      SERVICE_ID,
+      TEMPLATE_ID,
       {
         name,
         email,
         ticket_id: ticketId,
       },
-      publicKey,
     );
+
+    console.log("Email success", response);
+    console.log("Email sent successfully", response);
+    return response;
   } catch (error) {
-    console.error("[email] EmailJS send failed:", error);
+    console.error("Email error", error);
+    console.error("[email] Email failed", error);
     throw new Error("Confirmation email could not be sent.");
   }
 }
