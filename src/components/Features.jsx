@@ -57,7 +57,7 @@ export default function Features() {
                   <h3 className="mt-7 font-display text-2xl font-black uppercase tracking-[0.08em] text-white">
                     {feature.title}
                   </h3>
-                  <p className="mt-4 max-w-md font-body text-base leading-7 text-white/68">
+                  <p className="mt-3 font-body text-sm text-white/85 leading-relaxed tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.1)]">
                     {feature.description}
                   </p>
                 </div>

@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, CheckCircle2, LoaderCircle, X, UploadCloud } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ticketTypes } from "../lib/constants";
 import { hasSupabaseConfig, supabase } from "../lib/supabase";
 import jsPDF from "jspdf";
 
@@ -11,7 +10,7 @@ const initialFormState = {
   email: "",
   phone: "",
   college: "",
-  ticket_type: ticketTypes[0].id,
+  ticket_type: "general",
 };
 
 function sanitizePhone(value) {
@@ -21,6 +20,7 @@ function sanitizePhone(value) {
 function buildAttendee(formData) {
   return {
     ...formData,
+    ticket_type: "general",
     name: formData.name.trim(),
     email: formData.email.trim().toLowerCase(),
     phone: formData.phone.trim(),
@@ -29,7 +29,7 @@ function buildAttendee(formData) {
 }
 
 function validateAttendee(attendee) {
-  if (!attendee.name || !attendee.email || !attendee.phone || !attendee.college) {
+  if (!attendee.name || !attendee.email || !attendee.phone) {
     return "Please fill in all details before continuing.";
   }
 
@@ -91,11 +91,6 @@ export default function RegistrationModal({ isOpen, onClose }) {
   const [screenshotFile, setScreenshotFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  const selectedTicket = useMemo(
-    () => ticketTypes.find((ticket) => ticket.id === formData.ticket_type) || ticketTypes[0],
-    [formData.ticket_type],
-  );
-
   useEffect(() => {
     if (!isOpen) {
       setFormData(initialFormState);
@@ -118,7 +113,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
   function handleFieldChange(key, value) {
     const nextValue = key === "phone" ? sanitizePhone(value) : value;
-    setFormData((current) => ({ ...current, [key]: nextValue }));
+    setFormData((current) => ({ ...current, [key]: nextValue, ticket_type: "general" }));
   }
 
   function validateAndGetAttendee() {
@@ -150,87 +145,132 @@ export default function RegistrationModal({ isOpen, onClose }) {
   async function generateAndDownloadPDF(registration, fileObj) {
     try {
       const doc = new jsPDF();
-  
-      // 🎯 TITLE
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      let y = 0;
+
+      doc.setFillColor(229, 9, 20);
+      doc.rect(0, 0, pageWidth, 35, "F");
+
       doc.setFont("helvetica", "bold");
       doc.setFontSize(22);
+      doc.setTextColor(255, 255, 255);
+      doc.text("TEDx MSRIT", pageWidth / 2, 18, { align: "center" });
+
+      doc.setFontSize(11);
+      doc.text("Official Event Ticket", pageWidth / 2, 26, { align: "center" });
+
+      y = 45;
+
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(15, y, pageWidth - 30, 120, 6, 6, "F");
+
+      doc.setDrawColor(220);
+      doc.roundedRect(15, y, pageWidth - 30, 120, 6, 6);
+
+      y += 10;
+
+      doc.setFontSize(14);
       doc.setTextColor(229, 9, 20);
-      doc.text("TEDx MSRIT Ticket", 20, 25);
-  
-      // 📦 BOX DRAW FUNCTION
-      const drawBox = (label, value, y) => {
-        doc.setDrawColor(220);
-        doc.setFillColor(245, 245, 245);
-        doc.roundedRect(20, y - 6, 170, 16, 3, 3, "FD");
-  
+      doc.text("TICKET DETAILS", 20, y);
+
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.setTextColor(0);
+
+      const addField = (label, value) => {
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(label.toUpperCase(), 24, y);
-  
+        doc.text(`${label}:`, 20, y);
+
         doc.setFont("helvetica", "normal");
-        doc.setTextColor(20);
-        doc.text(String(value || "-"), 90, y);
+
+        const splitText = doc.splitTextToSize(String(value || "-"), 100);
+        doc.text(splitText, 65, y);
+
+        y += splitText.length * 6 + 3;
       };
-  
-      // 📄 CONTENT
-      let y = 45;
-  
-      drawBox("Ticket ID", registration.ticket_id, y); y += 18;
-      drawBox("Name", registration.name, y); y += 18;
-      drawBox("Email", registration.email, y); y += 18;
-      drawBox("Phone", registration.phone, y); y += 18;
-      drawBox("College", registration.college, y); y += 18;
-      drawBox("Ticket Type", registration.ticket_type, y); y += 18;
-      drawBox("Payment Status", registration.payment_status, y); y += 18;
-  
-      // 🔥 IMPORTANT FIELDS ADDED
-      drawBox("Payment Method", registration.payment_method, y); y += 18;
-      drawBox("Transaction ID", registration.payment_id, y); y += 22;
-  
-      // 🖼 SCREENSHOT IMAGE
+
+      addField("Name", registration.name);
+      addField("Email", registration.email);
+      addField("Phone", registration.phone);
+      addField("College / Org", registration.college);
+
+      doc.setDrawColor(200);
+      doc.line(20, y, pageWidth - 20, y);
+      y += 6;
+
+      addField("Ticket", "TEDx Ticket (₹250)");
+      addField("Payment Method", registration.payment_method);
+      addField("Transaction ID", registration.payment_id);
+
+      doc.setFillColor(229, 9, 20);
+      doc.roundedRect(20, y, pageWidth - 40, 12, 3, 3, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Ticket ID: ${registration.ticket_id}`, pageWidth / 2, y + 8, { align: "center" });
+
+      y += 18;
+
+      doc.setTextColor(0);
+      doc.setFont("helvetica", "bold");
+
+      doc.setFillColor(255, 230, 200);
+      doc.roundedRect(20, y, 80, 10, 3, 3, "F");
+
+      doc.setTextColor(180, 90, 0);
+      doc.text(registration.payment_status.toUpperCase(), 25, y + 7);
+
+      y += 18;
+
       if (fileObj) {
-        doc.setFont("helvetica", "bold");
         doc.setFontSize(12);
-        doc.setTextColor(50);
-        doc.text("Payment Screenshot", 20, y);
-  
+        doc.setTextColor(0);
+        doc.text("Payment Proof", 20, y);
+
+        y += 6;
+
         const reader = new FileReader();
         reader.readAsDataURL(fileObj);
-  
-        await new Promise((res) => {
-          reader.onload = res;
-        });
-  
+
+        await new Promise((res) => (reader.onload = res));
+
         const imgData = reader.result;
-  
+
         const img = new Image();
         img.src = imgData;
-  
-        await new Promise((res) => {
-          img.onload = res;
-        });
-  
-        let width = img.width;
-        let height = img.height;
-        const ratio = height / width;
-  
-        width = 160;
-        height = width * ratio;
-  
-        if (height > 120) {
-          height = 120;
-          width = height / ratio;
+
+        await new Promise((res) => (img.onload = res));
+
+        let width = pageWidth - 40;
+        let height = (img.height / img.width) * width;
+
+        if (height > 90) {
+          height = 90;
+          width = (img.width / img.height) * height;
         }
-  
-        doc.addImage(imgData, "JPEG", 20, y + 10, width, height);
+
+        const format = fileObj.type === "image/png" ? "PNG" : "JPEG";
+        doc.addImage(imgData, format, 20, y, width, height);
+        y += height + 10;
       }
-  
-      // 💾 SAVE PDF
+
+      doc.setDrawColor(229, 9, 20);
+      doc.line(20, 270, pageWidth - 20, 270);
+
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(
+        "TEDx MSRIT | Present this ticket at entry for verification",
+        pageWidth / 2,
+        280,
+        { align: "center" },
+      );
+
       doc.save(`TEDx_MSRIT_Ticket_${registration.ticket_id}.pdf`);
-  
     } catch (err) {
-      console.error("[pdf generation]", err);
+      console.error("[PDF ERROR]", err);
     }
   }
 
@@ -297,7 +337,9 @@ export default function RegistrationModal({ isOpen, onClose }) {
         name: attendee.name,
         email: attendee.email,
         phone: attendee.phone,
-        college: attendee.college,
+        college: attendee.college && attendee.college.trim() !== ""
+          ? attendee.college
+          : "Independent",
         ticket_type: attendee.ticket_type,
         payment_status: "pending_verification",
         ticket_id: ticketId,
@@ -383,7 +425,6 @@ export default function RegistrationModal({ isOpen, onClose }) {
                           { key: "name", label: "Full Name", type: "text" },
                           { key: "email", label: "Email", type: "email" },
                           { key: "phone", label: "Phone", type: "text" },
-                          { key: "college", label: "College", type: "text" },
                         ].map((field) => (
                           <label key={field.key} className="block">
                             <span className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
@@ -401,33 +442,31 @@ export default function RegistrationModal({ isOpen, onClose }) {
                             />
                           </label>
                         ))}
+                        <label className="block">
+                          <span className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                            College / Organization <span className="text-white/50">(optional)</span>
+                          </span>
+                          <input
+                            type="text"
+                            value={formData.college}
+                            onChange={(event) => handleFieldChange("college", event.target.value)}
+                            placeholder="Enter your college or organization"
+                            className="mt-3 w-full rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 font-body text-white outline-none transition focus:border-red-500/40"
+                          />
+                          <p className="mt-1 text-xs text-white/60">
+                            If you're not part of a college, you can leave this blank.
+                          </p>
+                        </label>
                       </div>
 
-                      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                        {ticketTypes.map((ticket) => (
-                          <button
-                            key={ticket.id}
-                            type="button"
-                            onClick={() =>
-                              setFormData((current) => ({
-                                ...current,
-                                ticket_type: ticket.id,
-                              }))
-                            }
-                            className={`rounded-[1.5rem] border p-5 text-left transition ${formData.ticket_type === ticket.id
-                              ? "border-red-500/40 bg-red-600/10 shadow-glow"
-                              : "border-white/10 bg-white/[0.04]"
-                              }`}
-                          >
-                            <p className="font-display text-2xl font-black uppercase text-white">
-                              {ticket.label}
-                            </p>
-                            <p className="mt-2 font-body text-sm text-white/60">{ticket.description}</p>
-                            <p className="mt-4 font-body text-sm uppercase tracking-[0.3em] text-red-200">
-                              INR {ticket.amount}
-                            </p>
-                          </button>
-                        ))}
+                      <div className="mt-6">
+                        <div className="rounded-[1.5rem] border border-red-500/40 bg-red-600/10 p-5 text-left shadow-glow">
+                          <p className="font-display text-2xl font-black uppercase text-white">TEDx Ticket</p>
+                          <p className="mt-2 font-body text-sm text-white/60">Entry to TEDx MSRIT event</p>
+                          <p className="mt-4 font-body text-sm uppercase tracking-[0.3em] text-red-200">
+                            INR 250
+                          </p>
+                        </div>
                       </div>
 
                       <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -436,7 +475,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                             Selected ticket
                           </p>
                           <p className="mt-2 font-display text-3xl font-black uppercase text-white">
-                            {selectedTicket.label}
+                            TEDx Ticket
                           </p>
                         </div>
                         <button
@@ -479,14 +518,14 @@ export default function RegistrationModal({ isOpen, onClose }) {
                           </div>
                           <div className="flex items-center justify-between gap-4">
                             <span>Ticket</span>
-                            <span className="text-right text-white">{selectedTicket.label}</span>
+                            <span className="text-right text-white">TEDx Ticket</span>
                           </div>
                           <div className="border-t border-white/10 pt-4">
                             <p className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
                               Amount
                             </p>
                             <p className="mt-2 font-display text-4xl font-black uppercase text-white">
-                              INR {selectedTicket.amount}
+                              INR 250
                             </p>
                           </div>
                         </div>

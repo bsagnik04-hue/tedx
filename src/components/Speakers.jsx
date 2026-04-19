@@ -11,7 +11,7 @@ export default function Speakers({ speakers, loading, error }) {
           <h2 className="mt-4 font-display text-4xl font-black uppercase leading-none text-white sm:text-5xl md:text-6xl">
             Voices shaping the Reverie stage.
           </h2>
-          <p className="mt-6 max-w-2xl font-body text-base leading-8 text-white/68 md:text-lg">
+          <p className="mt-6 max-w-2xl font-body text-base leading-8 text-white/85 tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.1)] md:text-lg">
             The section is powered by Supabase, so you can update speakers without touching the
             layout. Until then, the seeded lineup keeps the site presentation-ready.
           </p>
@@ -55,13 +55,13 @@ export default function Speakers({ speakers, loading, error }) {
                   <p className="font-body text-xs uppercase tracking-[0.5em] text-red-300/60">
                     {loading ? "Loading" : "Featured"}
                   </p>
-                  <h3 className="mt-4 font-display text-2xl font-black uppercase tracking-[0.08em] text-white">
+                  <h3 className="mt-4 font-display text-2xl font-black uppercase tracking-[0.08em] text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.1)]">
                     {speaker.name}
                   </h3>
-                  <p className="mt-3 font-body text-sm uppercase tracking-[0.3em] text-white/55">
+                  <p className="mt-3 font-body text-sm uppercase tracking-[0.3em] text-white/70 drop-shadow-[0_0_6px_rgba(255,255,255,0.1)]">
                     {speaker.title}
                   </p>
-                  <p className="mt-5 font-body text-base leading-7 text-white/68">
+                  <p className="mt-5 font-body text-base text-white/85 leading-relaxed tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.1)]">
                     {speaker.description}
                   </p>
                 </div>

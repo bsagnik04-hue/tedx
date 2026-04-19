@@ -42,8 +42,12 @@ export const defaultSpeakers = [
 ];
 
 export const ticketTypes = [
-  { id: "standard", label: "Standard", amount: 799, description: "Main event access and networking entry." },
-  { id: "premium", label: "Premium", amount: 1499, description: "Priority seating and premium event access." },
+  {
+    id: "general",
+    label: "TEDx Ticket",
+    description: "Entry to TEDx MSRIT event",
+    amount: 250,
+  },
 ];
 
 export const paymentStatusLabel = {
