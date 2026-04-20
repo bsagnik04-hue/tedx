@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, CheckCircle2, LoaderCircle, X, UploadCloud } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { hasSupabaseConfig, supabase } from "../lib/supabase";
+import { ticketTypes } from "../lib/constants";
 import jsPDF from "jspdf";
 
 const initialFormState = {
@@ -47,6 +48,9 @@ function validateAttendee(attendee) {
 function createTicketId() {
   return `TEDX-${Date.now()}`;
 }
+
+const generalTicket = ticketTypes.find((ticket) => ticket.id === "general") ?? ticketTypes[0];
+const ticketAmountLabel = `INR ${generalTicket.amount}`;
 
 async function insertRegistration(payload) {
   const { data, error } = await supabase.from("registrations").insert([payload]).select().single();
@@ -200,7 +204,10 @@ export default function RegistrationModal({ isOpen, onClose }) {
       doc.line(20, y, pageWidth - 20, y);
       y += 6;
 
-      addField("Ticket", "TEDx Ticket (₹250)");
+      addField("Ticket Type", "General");
+      addField("Amount", ticketAmountLabel);
+      doc.text(`Amount Paid: ${ticketAmountLabel}`, 20, y);
+      y += 9;
       addField("Payment Method", registration.payment_method);
       addField("Transaction ID", registration.payment_id);
 
@@ -464,7 +471,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                           <p className="font-display text-2xl font-black uppercase text-white">TEDx Ticket</p>
                           <p className="mt-2 font-body text-sm text-white/60">Entry to TEDx MSRIT event</p>
                           <p className="mt-4 font-body text-sm uppercase tracking-[0.3em] text-red-200">
-                            INR 250
+                            {ticketAmountLabel}
                           </p>
                         </div>
                       </div>
@@ -525,7 +532,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                               Amount
                             </p>
                             <p className="mt-2 font-display text-4xl font-black uppercase text-white">
-                              INR 250
+                              {ticketAmountLabel}
                             </p>
                           </div>
                         </div>

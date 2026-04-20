@@ -46,7 +46,7 @@ export const ticketTypes = [
     id: "general",
     label: "TEDx Ticket",
     description: "Entry to TEDx MSRIT event",
-    amount: 250,
+    amount: 200,
   },
 ];
 
