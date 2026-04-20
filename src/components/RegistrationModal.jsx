@@ -150,6 +150,11 @@ export default function RegistrationModal({ isOpen, onClose }) {
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const marginX = 20;
+      const contentWidth = pageWidth - marginX * 2;
+      const noticeText =
+        "Your ticket will be sent to your registered email ID after successful payment verification. Kindly ensure that a valid payment proof has been submitted.";
 
       let y = 0;
 
@@ -167,10 +172,10 @@ export default function RegistrationModal({ isOpen, onClose }) {
       y = 45;
 
       doc.setFillColor(245, 245, 245);
-      doc.roundedRect(15, y, pageWidth - 30, 120, 6, 6, "F");
+      doc.roundedRect(15, y, pageWidth - 30, 145, 6, 6, "F");
 
       doc.setDrawColor(220);
-      doc.roundedRect(15, y, pageWidth - 30, 120, 6, 6);
+      doc.roundedRect(15, y, pageWidth - 30, 145, 6, 6);
 
       y += 10;
 
@@ -185,14 +190,14 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
       const addField = (label, value) => {
         doc.setFont("helvetica", "bold");
-        doc.text(`${label}:`, 20, y);
+        doc.text(`${label}:`, marginX, y);
 
         doc.setFont("helvetica", "normal");
 
         const splitText = doc.splitTextToSize(String(value || "-"), 100);
         doc.text(splitText, 65, y);
 
-        y += splitText.length * 6 + 3;
+        y += splitText.length * 6 + 5;
       };
 
       addField("Name", registration.name);
@@ -206,37 +211,29 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
       addField("Ticket Type", "General");
       addField("Amount", ticketAmountLabel);
-      doc.text(`Amount Paid: ${ticketAmountLabel}`, 20, y);
-      y += 9;
+      doc.setFont("helvetica", "bold");
+      doc.text("Amount Paid:", marginX, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(ticketAmountLabel, 65, y);
+      y += 11;
+      addField("Payment Status", registration.payment_status);
       addField("Payment Method", registration.payment_method);
       addField("Transaction ID", registration.payment_id);
 
-      doc.setFillColor(229, 9, 20);
-      doc.roundedRect(20, y, pageWidth - 40, 12, 3, 3, "F");
+      y += 8;
 
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.text(`Ticket ID: ${registration.ticket_id}`, pageWidth / 2, y + 8, { align: "center" });
-
-      y += 18;
-
-      doc.setTextColor(0);
-      doc.setFont("helvetica", "bold");
-
-      doc.setFillColor(255, 230, 200);
-      doc.roundedRect(20, y, 80, 10, 3, 3, "F");
-
-      doc.setTextColor(180, 90, 0);
-      doc.text(registration.payment_status.toUpperCase(), 25, y + 7);
-
-      y += 18;
+      const noticeLines = doc.splitTextToSize(noticeText, contentWidth - 16);
+      const noticeHeight = Math.max(28, noticeLines.length * 5 + 16);
+      const noticeY = pageHeight - noticeHeight - 16;
+      const maxProofBottom = noticeY - 12;
 
       if (fileObj) {
         doc.setFontSize(12);
         doc.setTextColor(0);
-        doc.text("Payment Proof", 20, y);
+        doc.setFont("helvetica", "bold");
+        doc.text("Payment Proof", marginX, y);
 
-        y += 6;
+        y += 8;
 
         const reader = new FileReader();
         reader.readAsDataURL(fileObj);
@@ -253,29 +250,41 @@ export default function RegistrationModal({ isOpen, onClose }) {
         let width = pageWidth - 40;
         let height = (img.height / img.width) * width;
 
-        if (height > 90) {
-          height = 90;
+        const maxImageHeight = Math.max(42, maxProofBottom - y);
+
+        if (height > maxImageHeight) {
+          height = maxImageHeight;
           width = (img.width / img.height) * height;
         }
 
         const format = fileObj.type === "image/png" ? "PNG" : "JPEG";
-        doc.addImage(imgData, format, 20, y, width, height);
-        y += height + 10;
+        doc.addImage(imgData, format, marginX, y, width, height);
+        y += height + 12;
       }
 
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(marginX, noticeY, contentWidth, noticeHeight, 4, 4, "F");
+      doc.setDrawColor(220);
+      doc.roundedRect(marginX, noticeY, contentWidth, noticeHeight, 4, 4);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(229, 9, 20);
+      doc.text("Manual Verification Notice", marginX + 8, noticeY + 9);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(70);
+      doc.text(noticeLines, marginX + 8, noticeY + 17);
+
       doc.setDrawColor(229, 9, 20);
-      doc.line(20, 270, pageWidth - 20, 270);
+      doc.line(marginX, pageHeight - 8, pageWidth - marginX, pageHeight - 8);
 
       doc.setFontSize(9);
       doc.setTextColor(100);
-      doc.text(
-        "TEDx MSRIT | Present this ticket at entry for verification",
-        pageWidth / 2,
-        280,
-        { align: "center" },
-      );
+      doc.text("TEDx MSRIT", pageWidth / 2, pageHeight - 3, { align: "center" });
 
-      doc.save(`TEDx_MSRIT_Ticket_${registration.ticket_id}.pdf`);
+      doc.save(`TEDx_MSRIT_Ticket_${Date.now()}.pdf`);
     } catch (err) {
       console.error("[PDF ERROR]", err);
     }
@@ -665,21 +674,16 @@ export default function RegistrationModal({ isOpen, onClose }) {
                           Pending verification
                         </p>
                       </div>
-                      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                          <p className="font-body text-xs uppercase tracking-[0.4em] text-white/45">
-                            Ticket ID
-                          </p>
-                          <p className="mt-3 break-all font-body text-sm text-white/85">
-                            {successData.ticket_id}
-                          </p>
-                        </div>
+                      <div className="mt-6 grid gap-4">
                         <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
                           <p className="font-body text-xs uppercase tracking-[0.4em] text-white/45">
                             Payment status
                           </p>
                           <p className="mt-3 break-all font-body text-sm uppercase text-white/85">
-                            {successData.payment_status}
+                            UNDER VERIFICATION
+                          </p>
+                          <p className="mt-4 font-body text-sm leading-6 text-white/85">
+                            Your payment has been received and is currently under review. Your ticket will be sent to your registered email address after successful verification.
                           </p>
                         </div>
                       </div>
