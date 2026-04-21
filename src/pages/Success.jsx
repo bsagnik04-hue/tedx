@@ -16,12 +16,11 @@ export default function Success() {
     ? {
         name: location.state.name,
         email: location.state.email,
-        ticketId: location.state.ticket_id,
         paymentStatus: location.state.payment_status,
       }
     : null;
   const payload = statePayload || getSuccessPayload();
-  const isPending = payload?.paymentStatus === "pending";
+  const isPending = ["pending", "pending_verification"].includes(payload?.paymentStatus);
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white md:px-10">
@@ -38,25 +37,20 @@ export default function Success() {
           <h1 className="mt-4 font-display text-4xl font-black uppercase sm:text-5xl md:text-6xl">
             {isPending ? "Registration received" : "Registration confirmed"}
           </h1>
-          <p className="mt-5 max-w-2xl font-body text-base leading-8 text-white/68">
-            {isPending
-              ? "Your registration has been saved. Payment will be verified manually."
-              : "Your ticket has been saved and a confirmation email has been sent."}
+          <p className="mt-5 max-w-2xl font-body text-base leading-8 text-gray-300">
+            Your payment has been received and is currently under review. Your ticket will be sent
+            to your registered email address after successful verification.
           </p>
 
           {payload ? (
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-5">
-                <p className="font-body text-xs uppercase tracking-[0.35em] text-white/45">Name</p>
-                <p className="mt-3 break-all font-body text-sm text-white/88">{payload.name}</p>
-              </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-5">
-                <p className="font-body text-xs uppercase tracking-[0.35em] text-white/45">Email</p>
-                <p className="mt-3 break-all font-body text-sm text-white/88">{payload.email}</p>
-              </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-5">
-                <p className="font-body text-xs uppercase tracking-[0.35em] text-white/45">Ticket ID</p>
-                <p className="mt-3 break-all font-body text-sm text-white/88">{payload.ticketId}</p>
+            <div className="mt-10">
+              <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-6">
+                <p className="font-body text-xs uppercase tracking-[0.35em] text-gray-300">
+                  Payment status
+                </p>
+                <p className="mt-3 break-all font-body text-sm uppercase text-white">
+                  UNDER VERIFICATION
+                </p>
               </div>
             </div>
           ) : (

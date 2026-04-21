@@ -45,7 +45,7 @@ export default function Theme() {
           Reverie
         </motion.h2>
         <motion.p
-          className="mt-6 max-w-2xl font-body text-lg text-white/72 md:text-2xl"
+          className="mt-6 max-w-2xl font-body text-lg text-gray-300 md:text-2xl"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -87,7 +87,7 @@ export default function Theme() {
                 (tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-white/10 bg-black/40 px-4 py-2 font-body text-xs uppercase tracking-[0.28em] text-white/68"
+                    className="rounded-full border border-white/10 bg-black/40 px-4 py-2 font-body text-xs uppercase tracking-[0.28em] text-gray-300"
                   >
                     {tag}
                   </span>

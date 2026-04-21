@@ -63,7 +63,7 @@ export default function Contact({ onOpenRegistration }) {
             <Instagram className="h-4 w-4 text-red-300" />
             @tedxmsrit
           </a>
-          <p className="mt-5 font-body text-sm uppercase tracking-[0.3em] text-white/40">
+          <p className="mt-5 font-body text-sm uppercase tracking-[0.3em] text-gray-300">
             Independently organized TEDx event
           </p>
         </div>

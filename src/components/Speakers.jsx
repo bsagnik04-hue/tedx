@@ -39,7 +39,7 @@ function SpeakerCard({ speaker, index, loading }) {
           <p className="mt-3 font-body text-sm uppercase tracking-[0.3em] text-white/70 drop-shadow-[0_0_6px_rgba(255,255,255,0.1)]">
             {speaker.title}
           </p>
-          <p className="mt-5 font-body text-base text-white/85 leading-relaxed tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.1)]">
+          <p className="mt-5 font-body text-base text-gray-300 leading-relaxed tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.1)]">
             {speaker.description}
           </p>
         </div>
@@ -60,15 +60,15 @@ export default function Speakers({ speakers, loading, error }) {
           <h2 className="mt-4 font-display text-4xl font-black uppercase leading-none text-white sm:text-5xl md:text-6xl">
             Voices shaping the Reverie stage.
           </h2>
-          <p className="mt-6 max-w-2xl font-body text-base leading-8 text-white/85 tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.1)] md:text-lg">
-            The section is powered by Supabase, so you can update speakers without touching the
-            layout. Until then, the seeded lineup keeps the site presentation-ready.
+          <p className="mt-6 max-w-2xl font-body text-base leading-8 text-gray-300 tracking-wide drop-shadow-[0_0_6px_rgba(255,255,255,0.1)] md:text-lg">
+            A curated lineup of thinkers, creators, and change-makers bringing ideas that inspire,
+            challenge, and shape the future.
           </p>
         </div>
 
         {error ? (
           <div className="mt-8 rounded-[1.5rem] border border-red-500/20 bg-red-500/10 px-5 py-4 font-body text-sm text-red-100/90">
-            Could not load live speakers from Supabase. Showing default seeded speakers instead.
+            Could not load the latest speaker lineup. Showing the default lineup instead.
           </div>
         ) : null}
 

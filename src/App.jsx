@@ -187,7 +187,7 @@ function HomePage() {
 
       <main className="relative overflow-hidden">
         <div className="border-y border-white/6 bg-black/40 py-3 mt-[88px]">
-          <div className="marquee-track whitespace-nowrap font-display text-xs font-bold uppercase tracking-[0.5em] text-white/30">
+          <div className="marquee-track whitespace-nowrap font-display text-xs font-bold uppercase tracking-[0.5em] text-gray-300">
             <div className="animate-marquee">
               {repeatingWords.map((word, index) => (
                 <span key={`${word}-${index}`} className="mx-5 inline-block">

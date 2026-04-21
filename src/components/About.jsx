@@ -12,16 +12,10 @@ export default function About() {
         <h2 className="mt-5 font-display text-4xl font-black uppercase leading-none text-white sm:text-5xl md:text-6xl">
           About TEDx MSRIT
         </h2>
-        <p className="mt-8 max-w-2xl font-body text-base leading-8 text-white/72 md:text-lg">
-          TEDx MSRIT is a campus-born stage for fearless thinkers, builders, artists, and dreamers
-          who believe a single idea can bend the future. Reverie explores that exact moment when a
-          thought turns electric, a conversation becomes movement, and imagination starts shaping
-          reality.
-        </p>
-        <p className="mt-6 max-w-2xl font-body text-base leading-8 text-white/62 md:text-lg">
-          The experience is designed as a story in motion: immersive visuals, curated voices,
-          striking performances, and the kind of atmosphere that stays with you long after the
-          lights fade.
+        <p className="mt-6 text-lg leading-8 text-gray-300">
+          A TEDx experience designed to bring together ideas, innovation, and inspiring voices.
+          Through powerful talks and immersive storytelling, we aim to spark conversations that
+          shape perspectives and drive meaningful change.
         </p>
       </div>
 
@@ -35,7 +29,7 @@ export default function About() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.16),transparent_24%),radial-gradient(circle_at_bottom_left,_rgba(255,0,0,0.18),transparent_28%)]" />
         <div className="relative flex h-full flex-col justify-between">
           <div>
-            <p className="font-body text-xs uppercase tracking-[0.6em] text-white/40">Edition 2026</p>
+            <p className="font-body text-xs uppercase tracking-[0.6em] text-gray-300">Edition 2026</p>
             <p className="mt-6 max-w-xs font-display text-3xl font-black uppercase leading-tight text-white sm:text-4xl">
               A poster translated into an experience.
             </p>

@@ -104,8 +104,8 @@ export default function EventDate() {
           </div>
         </div>
 
-        <p className="mt-10 max-w-2xl font-body text-base leading-8 text-white/68 md:text-lg">
-          One evening. One red-lit stage. A room full of possibility, waiting for its next spark.
+        <p className="mt-10 max-w-2xl font-body text-base leading-8 text-gray-300 md:text-lg">
+          One day. One red-lit stage. A room full of possibility, waiting for its next spark.
         </p>
       </div>
     </section>

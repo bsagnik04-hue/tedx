@@ -32,7 +32,7 @@ export default function JoinPage({ isOpen, onClose, onOpenRegistration }) {
               <h2 className="mt-4 font-display text-4xl font-black uppercase text-white md:text-5xl">
                 Stay connected
               </h2>
-              <p className="mt-4 max-w-xl font-body text-base leading-8 text-white/68">
+              <p className="mt-4 max-w-xl font-body text-base leading-8 text-gray-300">
                 Follow our journey, announcements, and speaker reveals on Instagram before you register.
               </p>
 
@@ -40,7 +40,7 @@ export default function JoinPage({ isOpen, onClose, onOpenRegistration }) {
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-red-500/30 bg-red-600/10 text-red-200">
                   <Instagram className="h-6 w-6" />
                 </div>
-                <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                   Instagram
                 </p>
                 <a

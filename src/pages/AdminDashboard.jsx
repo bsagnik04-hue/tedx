@@ -38,7 +38,7 @@ export default function AdminDashboard() {
           <h1 className="mt-4 font-display text-4xl font-black uppercase sm:text-5xl md:text-6xl">
             Registration dashboard
           </h1>
-          <p className="mt-5 font-body text-base leading-8 text-white/68">
+          <p className="mt-5 font-body text-base leading-8 text-gray-300">
             This page stays visually aligned with the existing site while pulling registrations
             securely through a serverless API route.
           </p>
@@ -75,7 +75,7 @@ export default function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-white/10">
               <thead className="bg-white/[0.03]">
-                <tr className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                <tr className="font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                   <th className="px-5 py-4 text-left">Name</th>
                   <th className="px-5 py-4 text-left">Email</th>
                   <th className="px-5 py-4 text-left">Ticket</th>
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="px-5 py-10 text-center font-body text-sm text-white/45">
+                    <td colSpan="5" className="px-5 py-10 text-center font-body text-sm text-gray-300">
                       No registrations loaded yet.
                     </td>
                   </tr>

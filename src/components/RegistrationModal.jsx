@@ -167,7 +167,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
       doc.text("TEDx MSRIT", pageWidth / 2, 18, { align: "center" });
 
       doc.setFontSize(11);
-      doc.text("Official Event Ticket", pageWidth / 2, 26, { align: "center" });
+      doc.text("Payment Verification Receipt", pageWidth / 2, 26, { align: "center" });
 
       y = 45;
 
@@ -181,7 +181,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
       doc.setFontSize(14);
       doc.setTextColor(229, 9, 20);
-      doc.text("TICKET DETAILS", 20, y);
+      doc.text("REGISTRATION DETAILS", 20, y);
 
       y += 8;
 
@@ -284,7 +284,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
       doc.setTextColor(100);
       doc.text("TEDx MSRIT", pageWidth / 2, pageHeight - 3, { align: "center" });
 
-      doc.save(`TEDx_MSRIT_Ticket_${Date.now()}.pdf`);
+      doc.save(`TEDx_MSRIT_Receipt_${Date.now()}.pdf`);
     } catch (err) {
       console.error("[PDF ERROR]", err);
     }
@@ -316,7 +316,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
     }
 
     if (!hasSupabaseConfig() || !supabase) {
-      const configError = "Supabase is not configured correctly.";
+      const configError = "Payment verification is temporarily unavailable.";
       console.error("[registration]", configError);
       setError(configError);
       window.alert(configError);
@@ -369,7 +369,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
       // 3. Generate PDF
       await generateAndDownloadPDF(registration, screenshotFile);
 
-      const message = "Payment submitted. Your ticket PDF is downloading.";
+      const message = "Payment submitted. Your verification receipt is downloading.";
       window.alert(message);
 
       setSuccessData(registration);
@@ -443,7 +443,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                           { key: "phone", label: "Phone", type: "text" },
                         ].map((field) => (
                           <label key={field.key} className="block">
-                            <span className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                            <span className="font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                               {field.label}
                             </span>
                             <input
@@ -459,7 +459,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                           </label>
                         ))}
                         <label className="block">
-                          <span className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                          <span className="font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                             College / Organization <span className="text-white/50">(optional)</span>
                           </span>
                           <input
@@ -487,7 +487,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
                       <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <p className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                          <p className="font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                             Selected ticket
                           </p>
                           <p className="mt-2 font-display text-3xl font-black uppercase text-white">
@@ -515,7 +515,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                         <p className="font-display text-2xl font-black uppercase text-white">
                           Order Summary
                         </p>
-                        <div className="mt-6 space-y-4 font-body text-sm text-white/72 mb-8">
+                        <div className="mt-6 space-y-4 font-body text-sm text-gray-300 mb-8">
                           <div className="flex items-center justify-between gap-4">
                             <span>Name</span>
                             <span className="text-right text-white">{formData.name}</span>
@@ -537,7 +537,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                             <span className="text-right text-white">TEDx Ticket</span>
                           </div>
                           <div className="border-t border-white/10 pt-4">
-                            <p className="font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                            <p className="font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                               Amount
                             </p>
                             <p className="mt-2 font-display text-4xl font-black uppercase text-white">
@@ -549,7 +549,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                         <div className="mt-auto space-y-4">
                           <div className="space-y-4">
                             <div>
-                              <p className="mb-3 font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                              <p className="mb-3 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                                 App Used
                               </p>
                               <div className="flex gap-2">
@@ -573,7 +573,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                             </div>
 
                             <div>
-                              <p className="mb-2 font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                              <p className="mb-2 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                                 Transaction ID
                               </p>
                               <input
@@ -637,7 +637,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
                             className="tedx-qr-image h-auto w-full max-w-[260px] rounded-lg"
                           />
                         </div>
-                        <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                        <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                           UPI ID
                         </p>
                         <p className="mt-2 break-all font-body text-base font-semibold text-white">
@@ -676,16 +676,18 @@ export default function RegistrationModal({ isOpen, onClose }) {
                       </div>
                       <div className="mt-6 grid gap-4">
                         <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
-                          <p className="font-body text-xs uppercase tracking-[0.4em] text-white/45">
+                          <p className="font-body text-xs uppercase tracking-[0.4em] text-gray-300">
                             Payment status
                           </p>
-                          <p className="mt-3 break-all font-body text-sm uppercase text-white/85">
+                          <p className="mt-3 break-all font-body text-sm uppercase text-white">
                             UNDER VERIFICATION
                           </p>
-                          <p className="mt-4 font-body text-sm leading-6 text-white/85">
-                            Your payment has been received and is currently under review. Your ticket will be sent to your registered email address after successful verification.
-                          </p>
                         </div>
+                        <p className="font-body text-sm leading-6 text-gray-300">
+                          Your payment has been received and is currently under review. Your ticket
+                          will be sent to your registered email address after successful
+                          verification.
+                        </p>
                       </div>
                       <button
                         type="button"

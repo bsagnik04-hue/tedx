@@ -21,7 +21,7 @@ function Card({ rotate, className, delay, label }) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),transparent_30%),linear-gradient(180deg,transparent,rgba(255,0,0,0.18))]" />
         <div className="relative flex h-full flex-col justify-between">
           <div>
-            <p className="font-body text-[10px] uppercase tracking-[0.45em] text-white/45">
+            <p className="font-body text-[10px] uppercase tracking-[0.45em] text-gray-300">
               TEDx
             </p>
             <p className="mt-2 font-display text-2xl font-black text-white/90">MSRIT</p>
@@ -80,9 +80,9 @@ export default function Hero({ onOpenRegistration }) {
           TED<span className="text-ted">x</span> MSRIT
         </h1>
         <div className="mx-auto mt-6 h-px w-40 bg-gradient-to-r from-transparent via-red-500 to-transparent" />
-        <p className="mx-auto mt-8 max-w-2xl font-body text-lg leading-relaxed text-white/72 md:text-xl">
-          Where ideas dream into reality through a cinematic evening of bold stories, sharp minds,
-          and unforgettable conversations.
+        <p className="mx-auto mt-8 max-w-2xl font-body text-lg leading-relaxed text-gray-300 md:text-xl">
+          Where ideas dream into reality through a cinematic day of bold stories, sharp minds, and
+          unforgettable conversations.
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <button

@@ -32,7 +32,7 @@ export default function InfoModal({ isOpen, onClose, onProceed }) {
               <h2 className="mt-4 font-display text-4xl font-black uppercase text-white md:text-5xl">
                 Stay in the loop
               </h2>
-              <p className="mt-4 max-w-xl font-body text-base leading-8 text-white/68">
+              <p className="mt-4 max-w-xl font-body text-base leading-8 text-gray-300">
                 Follow us for updates, speaker reveals, and event announcements before you complete
                 your registration.
               </p>
@@ -41,7 +41,7 @@ export default function InfoModal({ isOpen, onClose, onProceed }) {
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-red-500/30 bg-red-600/10 text-red-200">
                   <Instagram className="h-6 w-6" />
                 </div>
-                <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-white/45">
+                <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                   Instagram
                 </p>
                 <a
@@ -55,8 +55,8 @@ export default function InfoModal({ isOpen, onClose, onProceed }) {
               </div>
 
               <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-5">
-                <p className="font-body text-xs uppercase tracking-[0.35em] text-white/45">Before you register</p>
-                <p className="mt-3 font-body text-sm leading-7 text-white/68">
+                <p className="font-body text-xs uppercase tracking-[0.35em] text-gray-300">Before you register</p>
+                <p className="mt-3 font-body text-sm leading-7 text-gray-300">
                   Follow us for updates, then continue to the registration form to choose your
                   ticket and complete payment.
                 </p>
