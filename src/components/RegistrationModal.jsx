@@ -294,13 +294,6 @@ export default function RegistrationModal({ isOpen, onClose }) {
     const attendee = validateAndGetAttendee();
     if (!attendee) return;
 
-    if (!paymentMethod) {
-      const err = "Please select a payment method.";
-      setError(err);
-      window.alert(err);
-      return;
-    }
-
     if (!transactionId.trim()) {
       const err = "Please enter the transaction ID.";
       setError(err);
@@ -360,7 +353,7 @@ export default function RegistrationModal({ isOpen, onClose }) {
         payment_status: "pending_verification",
         ticket_id: ticketId,
         screenshot_url: screenshotUrl,
-        payment_method: paymentMethod,   // ✅ FIXED
+        payment_method: paymentMethod || "Not specified",
         payment_id: transactionId
       };
 
@@ -511,6 +504,37 @@ export default function RegistrationModal({ isOpen, onClose }) {
                     description="Scan the QR code to pay, then upload the screenshot."
                   >
                     <div className="grid items-stretch gap-6 md:grid-cols-2">
+                      <div className="flex min-h-[100%] flex-col rounded-[1.5rem] border border-red-500/40 bg-black p-6 text-center">
+                        <h3 className="font-display text-2xl font-black uppercase text-white">UPI Payment</h3>
+                        <div className="mt-6 flex flex-1 items-center justify-center rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                          <img
+                            src="/qr.png"
+                            alt="UPI QR"
+                            className="tedx-qr-image h-auto w-full max-w-[260px] rounded-lg"
+                          />
+                        </div>
+                        <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
+                          UPI ID
+                        </p>
+                        <p className="mt-2 break-all font-body text-base font-semibold text-white">
+                          taejaswineepj@oksbi
+                        </p>
+                        <div className="mt-5 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left font-body text-sm text-amber-100/90">
+                          Manual verification will be done after you submit this payment.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handlePaymentSubmit}
+                          disabled={loading || !screenshotFile}
+                          className="mt-6 inline-flex items-center justify-center gap-3 rounded-full border border-red-500/30 bg-red-600 px-6 py-4 font-body text-sm font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {loading ? (
+                            <LoaderCircle className="h-4 w-4 animate-spin" />
+                          ) : null}
+                          {loading ? "Submitting..." : "Submit Payment"}
+                        </button>
+                      </div>
+
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6 h-full">
                         <p className="font-display text-2xl font-black uppercase text-white">
                           Order Summary
@@ -548,30 +572,6 @@ export default function RegistrationModal({ isOpen, onClose }) {
 
                         <div className="mt-auto space-y-4">
                           <div className="space-y-4">
-                            <div>
-                              <p className="mb-3 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
-                                App Used
-                              </p>
-                              <div className="flex gap-2">
-                                {["Google Pay", "Paytm", "PhonePe"].map((method) => (
-                                  <label key={method} className="flex-1 cursor-pointer">
-                                    <div className={`rounded-xl border px-3 py-2 text-center font-body text-xs text-white transition ${paymentMethod === method ? "border-red-500/40 bg-red-600/10 shadow-glow" : "border-white/10 bg-white/[0.04] hover:bg-white/10"
-                                      }`}>
-                                      <input
-                                        type="radio"
-                                        name="paymentMethod"
-                                        value={method}
-                                        checked={paymentMethod === method}
-                                        onChange={(e) => setPaymentMethod(e.target.value)}
-                                        className="sr-only"
-                                      />
-                                      {method}
-                                    </div>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-
                             <div>
                               <p className="mb-2 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
                                 Transaction ID
@@ -626,37 +626,6 @@ export default function RegistrationModal({ isOpen, onClose }) {
                             Back
                           </button>
                         </div>
-                      </div>
-
-                      <div className="flex min-h-[100%] flex-col rounded-[1.5rem] border border-red-500/40 bg-black p-6 text-center">
-                        <h3 className="font-display text-2xl font-black uppercase text-white">UPI Payment</h3>
-                        <div className="mt-6 flex flex-1 items-center justify-center rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-                          <img
-                            src="/qr.png"
-                            alt="UPI QR"
-                            className="tedx-qr-image h-auto w-full max-w-[260px] rounded-lg"
-                          />
-                        </div>
-                        <p className="mt-5 font-body text-xs uppercase tracking-[0.35em] text-gray-300">
-                          UPI ID
-                        </p>
-                        <p className="mt-2 break-all font-body text-base font-semibold text-white">
-                          taejaswineepj@oksbi
-                        </p>
-                        <div className="mt-5 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-left font-body text-sm text-amber-100/90">
-                          Manual verification will be done after you submit this payment.
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handlePaymentSubmit}
-                          disabled={loading || !screenshotFile}
-                          className="mt-6 inline-flex items-center justify-center gap-3 rounded-full border border-red-500/30 bg-red-600 px-6 py-4 font-body text-sm font-semibold uppercase tracking-[0.24em] text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {loading ? (
-                            <LoaderCircle className="h-4 w-4 animate-spin" />
-                          ) : null}
-                          {loading ? "Submitting..." : "Submit Payment"}
-                        </button>
                       </div>
                     </div>
                   </StepShell>
