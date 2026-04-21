@@ -23,7 +23,7 @@ export default function Contact({ onOpenRegistration }) {
           onClick={onOpenRegistration}
           className="inline-flex rounded-full border border-red-500/30 bg-red-600 px-6 py-3 font-body text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-red-500"
         >
-          Register Now
+          Buy Now
         </button>
       </div>
 

@@ -59,7 +59,7 @@ export default function JoinPage({ isOpen, onClose, onOpenRegistration }) {
                   onClick={onOpenRegistration}
                   className="inline-flex flex-1 items-center justify-center rounded-full border border-red-500/30 bg-red-600 px-6 py-4 font-body text-sm font-semibold uppercase tracking-[0.28em] text-white transition hover:bg-red-500"
                 >
-                  Register Now
+                  Buy Now
                 </button>
                 <button
                   type="button"

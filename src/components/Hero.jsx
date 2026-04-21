@@ -90,7 +90,7 @@ export default function Hero({ onOpenRegistration }) {
             onClick={onOpenRegistration}
             className="group inline-flex items-center gap-3 rounded-full border border-red-400/30 bg-red-600 px-7 py-4 font-body text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-glow transition hover:bg-red-500"
           >
-            Register Now
+            Buy Now
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </button>
           <a
